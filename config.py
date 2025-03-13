@@ -1,0 +1,5 @@
+openapi_key = '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'
+project_id = 'proj_3p0M6LYcN1Q1NjxWiXgHxd0D'
+
+TWILIO_ACCOUNT_SID = "AC00b8bca9667bff5f31976939646665c2"
+TWILIO_AUTH_TOKEN = "acfd70895ef6fa632b8cf2277f88c6d4"
