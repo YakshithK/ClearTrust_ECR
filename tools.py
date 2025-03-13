@@ -3,7 +3,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "predict",
-            "description": "Detect if a message is a scam or not.",
+            "description": "Detect if a suspicous sms is a scam or not.",
             "parameters": {
                 "type": "object",
                 "properties": {
