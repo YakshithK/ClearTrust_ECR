@@ -3,7 +3,7 @@ from speech_text import listen_for_command
 from text_speech import speak  
 from sent import analyze_sentiment
 from config import openapi_key
-from detect_scam import predict
+from detect_scam import predict_sms, predict_email
 from tools import tools
 from config import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN
 from twilio.rest import Client
