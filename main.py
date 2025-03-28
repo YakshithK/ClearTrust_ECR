@@ -1,7 +1,6 @@
 from openai import OpenAI
 from speech_text import listen_for_command  
 from text_speech import speak  
-from sent import analyze_sentiment
 from config import openapi_key
 from detect_scam import predict_sms, predict_email
 from tools import tools
@@ -10,6 +9,10 @@ from twilio.rest import Client
 import asyncio
 import json
 import sys
+import tkinter as tk
+from tkinter import scrolledtext
+import threading
+from datetime import datetime
 
 client = OpenAI(api_key=openapi_key)
 
@@ -27,10 +30,10 @@ def send_sms_alert(message):
 
 conversation_history = []
 
-async def get_response_from_openai(prompt, sentiment):
+async def get_response_from_openai(prompt):
     global conversation_history
 
-    conversation_history.append({"role": "user", "content": prompt, "sentiment": sentiment})
+    conversation_history.append({"role": "user", "content": prompt})
 
     if len(conversation_history) > 10:
         conversation_history = conversation_history[-10:]
@@ -69,7 +72,7 @@ async def get_response_from_openai(prompt, sentiment):
 
             reply = response.choices[0].message.content
 
-        conversation_history.append({"role": "assistant", "content": reply, "sentiment": sentiment})
+        conversation_history.append({"role": "assistant", "content": reply})
 
     except Exception as e:
         print(f"OpenAI API error: {e}")
@@ -77,25 +80,113 @@ async def get_response_from_openai(prompt, sentiment):
 
     return reply
 
-async def speak_loop():
-    """Main event loop for voice interaction."""
-    print("Say something...")
+class VoiceChatbotGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("ECR - Elderly Companion Robot")
+        self.root.geometry("600x800")
+        
+        self.status_label = tk.Label(
+            root, 
+            text="Press 'Start Listening' to begin", 
+            font=("Arial", 14)
+        )
+        self.status_label.pack(pady=20)
+        
+        self.chat_area = scrolledtext.ScrolledText(
+            root, 
+            wrap=tk.WORD, 
+            height=25,
+            font=("Arial", 12)
+        )
+        self.chat_area.pack(padx=20, pady=20, fill=tk.BOTH, expand=True)
+        
+        self.listen_button = tk.Button(
+            root, 
+            text="Start Listening",
+            command=self.toggle_listening,
+            height=2,
+            font=("Arial", 16, "bold"),
+            bg="#4CAF50",
+            fg="white"
+        )
+        self.listen_button.pack(pady=20)
+        
+        self.is_listening = False
+        self.conversation_history = []
+        
+        # Create event loop for async operations
+        self.loop = asyncio.new_event_loop()
+        self.thread = None
 
-    command = await listen_for_command()
+    def display_message(self, message, sender):
+        timestamp = datetime.now().strftime("%I:%M %p")
+        self.chat_area.insert(tk.END, f"[{timestamp}] {sender}: {message}\n\n")
+        self.chat_area.see(tk.END)
 
-    while 'bye' not in command.lower():
-        print(f"User: {command}")
-        sentiment = analyze_sentiment(command)
-        response = await get_response_from_openai(command, sentiment)
-        print(conversation_history)
+    def update_status(self, status):
+        self.status_label.config(text=status)
 
-        if response: 
-            print(f"AI: {response}")
-            await speak(response)
+    async def process_message(self, message):
+        response = await get_response_from_openai(message)
+        
+        # Update GUI from the main thread
+        self.root.after(0, self.display_message, response, "ECR")
+        self.root.after(0, self.update_status, "Press 'Start Listening' to speak again")
+        
+        # Speak the response
+        await speak(response)
 
-        command = await listen_for_command()
+    async def listen_loop(self):
+        while self.is_listening:
+            try:
+                self.root.after(0, self.update_status, "Listening... Please speak")
+                command = await listen_for_command()
+                
+                if command:
+                    self.root.after(0, self.display_message, command, "You")
+                    self.root.after(0, self.update_status, "Processing your message...")
+                    await self.process_message(command)
+                    
+                    if 'bye' in command.lower():
+                        self.is_listening = False
+                        self.root.after(0, lambda: self.listen_button.config(text="Start Listening", bg="#4CAF50"))
+                        await speak("Goodbye! Have a great day!")
+                        break
+            except Exception as e:
+                print(f"Error in listen loop: {e}")
+                self.root.after(0, self.update_status, "Error occurred. Please try again")
+                self.is_listening = False
+                self.root.after(0, lambda: self.listen_button.config(text="Start Listening", bg="#4CAF50"))
 
-    await speak("Bye! Have a great day!")
+    def run_async_loop(self):
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_forever()
+
+    def start_listening(self):
+        if not self.thread or not self.thread.is_alive():
+            self.thread = threading.Thread(target=self.run_async_loop, daemon=True)
+            self.thread.start()
+        
+        self.is_listening = True
+        asyncio.run_coroutine_threadsafe(self.listen_loop(), self.loop)
+
+    def stop_listening(self):
+        self.is_listening = False
+        self.update_status("Listening stopped")
+
+    def toggle_listening(self):
+        if not self.is_listening:
+            self.listen_button.config(text="Stop Listening", bg="#f44336")
+            self.start_listening()
+        else:
+            self.listen_button.config(text="Start Listening", bg="#4CAF50")
+            self.stop_listening()
+
+def main():
+    root = tk.Tk()
+    app = VoiceChatbotGUI(root)
+    root.mainloop()
 
 if __name__ == "__main__":
-    asyncio.run(speak_loop())
+    main()

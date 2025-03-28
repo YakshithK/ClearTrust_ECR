@@ -1,10 +1,18 @@
 from textblob import TextBlob
 
 def analyze_sentiment(text):
-    sentiment = TextBlob(text).sentiment.polarity
-    if sentiment < -0.3:
-        return "distressed"
-    elif sentiment > 0.3:
-        return "happy"
-    return "neutral"
+    """
+    Analyze sentiment using TextBlob.
+    Returns: 'positive', 'negative', or 'neutral'
+    """
+    analysis = TextBlob(text)
+    # Get the polarity score (-1 to 1)
+    polarity = analysis.sentiment.polarity
+    
+    if polarity > 0:
+        return 'positive'
+    elif polarity < 0:
+        return 'negative'
+    else:
+        return 'neutral'
 

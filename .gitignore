@@ -1,0 +1,39 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn.lock
+package-lock.json
+
+# Python dependencies
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+
+# Logs and temporary files
+logs/
+*.log
+*.out
+*.tmp
+*.swp
+
+# Environment variables
+.env
+.env.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.iml
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Build and output files
+dist/
+build/
+
+config.py
