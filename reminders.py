@@ -7,7 +7,7 @@ def parse_frequency(frequency):
     """Parses a frequency string and returns the duration in seconds."""
     # Regex patterns to match frequency strings
     daily_pattern = r"once a day"
-    hourly_pattern = r"every (\d+) hours"
+    hourly_pattern = r"every (\d+(\.\d+)?) hours"
     daily_pattern_alt = r"every day"
 
     # Match 'once a day' or 'every day'
@@ -17,7 +17,7 @@ def parse_frequency(frequency):
     # Match 'every X hours'
     match = re.match(hourly_pattern, frequency)
     if match:
-        hours = int(match.group(1))
+        hours = float(match.group(1))
         return hours * 3600  # Convert hours to seconds
     
     return None  # Invalid frequency format
@@ -85,3 +85,33 @@ def check_medication_reminder():
             return medication
     
     return None
+
+# Function to update medication start_time when it's time to take it
+def update_medication(medication_name):
+    """Updates the start time of the medication in the JSON file when it's taken."""
+    
+    # Check if the medications file exists
+    if not os.path.exists("medications.json"):
+        return "No medications found."
+    
+    # Load current data from medications.json
+    with open("medications.json", "r") as file:
+        try:
+            medications = json.load(file)
+        except json.JSONDecodeError:
+            medications = []
+    
+    # Iterate through the medications to find the one that matches
+    for medication in medications:
+        if medication["name"].lower() == medication_name.lower():
+            # Update the start_time to the current time (time.time() records seconds since the epoch)
+            medication["start"] = time.time()
+            
+            # Save the updated list of medications back to the file
+            with open("medications.json", "w") as file:
+                json.dump(medications, file, indent=4)
+                
+            return f"Before, you need to take your medication: {medication['name']} with a dosage of {medication['dosage']}."
+    
+    # If medication wasn't found
+    return f"Medication '{medication_name}' not found."

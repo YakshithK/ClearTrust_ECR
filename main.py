@@ -3,7 +3,7 @@ from speech_text import listen_for_command
 from text_speech import speak  
 from config import openapi_key
 from detect_scam import predict_sms, predict_email
-from reminders import add_medication_to_json, check_medication_reminder
+from reminders import add_medication_to_json, check_medication_reminder, update_medication
 from tools import tools
 from config import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN
 from twilio.rest import Client
@@ -33,16 +33,15 @@ conversation_history = []
 
 async def get_response_from_openai(prompt):
     global conversation_history
+    conversation_history.append({"role": "user", "content": prompt})
 
     # Check for medication reminders before responding
     reminder = check_medication_reminder()
     if reminder:
-        # If a reminder is due, inform the user before proceeding
-        reminder_message = f"Before I tell you how to {prompt}, you need to take your medication: {reminder['name']} with a dosage of {reminder['dosage']}."
-        return reminder_message
-
-    # Continue with the normal processing if no reminder is due
-    conversation_history.append({"role": "user", "content": prompt})
+        reply = update_medication(reminder['name'])
+        conversation_history.append({"role": "assistant", "content": reply})
+        return reply
+        
 
     if len(conversation_history) > 10:
         conversation_history = conversation_history[-10:]
