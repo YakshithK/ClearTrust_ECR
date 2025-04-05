@@ -6,8 +6,9 @@ async def listen_for_command():
     
     with sr.Microphone(0) as source:
         print("Listening...")
-        recognizer.adjust_for_ambient_noise(source)
         
+        recognizer.adjust_for_ambient_noise(source)
+        recognizer.pause_threshold = 2  # Increase the threshold if needed (default is 0.8)
         loop = asyncio.get_running_loop()
         audio = await loop.run_in_executor(None, recognizer.listen, source)
 

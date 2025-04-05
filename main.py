@@ -3,6 +3,7 @@ from speech_text import listen_for_command
 from text_speech import speak  
 from config import openapi_key
 from detect_scam import predict_sms, predict_email
+from reminders import add_medication_to_json, check_medication_reminder
 from tools import tools
 from config import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN
 from twilio.rest import Client
@@ -33,6 +34,14 @@ conversation_history = []
 async def get_response_from_openai(prompt):
     global conversation_history
 
+    # Check for medication reminders before responding
+    reminder = check_medication_reminder()
+    if reminder:
+        # If a reminder is due, inform the user before proceeding
+        reminder_message = f"Before I tell you how to {prompt}, you need to take your medication: {reminder['name']} with a dosage of {reminder['dosage']}."
+        return reminder_message
+
+    # Continue with the normal processing if no reminder is due
     conversation_history.append({"role": "user", "content": prompt})
 
     if len(conversation_history) > 10:
@@ -79,6 +88,7 @@ async def get_response_from_openai(prompt):
         reply = "I'm having trouble right now. Please try again later."
 
     return reply
+
 
 class VoiceChatbotGUI:
     def __init__(self, root):
