@@ -1,0 +1,38 @@
+[
+    {
+        "name": "Ibuprofen",
+        "dosage": "200 mg",
+        "frequency": "4 times per day",
+        "start": 1743879010.988834
+    },
+    {
+        "name": "Pepto-Bismol",
+        "dosage": "1 dose",
+        "frequency": "3 times per day",
+        "start": 1743879030.9115422
+    },
+    {
+        "name": "Pepto-Bismol",
+        "dosage": "1 dose",
+        "frequency": "after every meal",
+        "start": 1743879070.9777396
+    },
+    {
+        "name": "aspirin",
+        "dosage": "100 mg",
+        "frequency": "once a day",
+        "start": 1743880005.6943164
+    },
+    {
+        "name": "ibuprofen",
+        "dosage": "200mg",
+        "frequency": "twice a day",
+        "start": 1743880110.79505
+    },
+    {
+        "name": "ibuprofen",
+        "dosage": "200mg",
+        "frequency": "every 6 hours",
+        "start": 1743880127.0862372
+    }
+]

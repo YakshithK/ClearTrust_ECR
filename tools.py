@@ -32,5 +32,36 @@ tools = [
                 "required": ["body"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "add_medication_to_json",
+            "description": "Add a medication reminder to JSON format. Automatically extract details like medication name, dosage, and frequency from user input.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "medication_details": {
+                        "type": "object",
+                        "properties": {
+                            "medication_name": {
+                                "type": "string",
+                                "description": "The name of the medication."
+                            },
+                            "dosage": {
+                                "type": "string",
+                                "description": "The dosage of the medication (e.g., 500mg, 1 tablet)."
+                            },
+                            "frequency": {
+                                "type": "string",
+                                "description": "The frequency of the medication (e.g., once a day, every 6 hours)."
+                            }
+                        },
+                        "required": ["medication_name", "dosage", "frequency"]
+                    }
+                },
+                "required": ["medication_details"]
+            }
+        }
     }
 ]

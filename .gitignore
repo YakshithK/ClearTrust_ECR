@@ -31,6 +31,7 @@ logs/
 # OS-specific files
 .DS_Store
 Thumbs.db
+config.py
 
 # Build and output files
 dist/
