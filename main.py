@@ -40,7 +40,7 @@ async def get_response_from_openai(prompt):
 
     try:
         response = await asyncio.to_thread(client.chat.completions.create,  
-            model="gpt-3.5-turbo",
+            model="ft:gpt-3.5-turbo-0125:personal::BaA9dvYQ",
             messages=[{"role": "system", "content": "You are a friendly AI companion for an elderly individual who is not tech-savvy. Keep responses warm and empathetic and your name is also ECR, short for Elderly Companion Robot."}]
             + conversation_history,
             max_tokens=100,
