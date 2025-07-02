@@ -13,6 +13,7 @@ import tkinter as tk
 from tkinter import scrolledtext
 import threading
 from datetime import datetime
+from reminders import reminder_manager
 
 client = OpenAI(api_key=openapi_key)
 
@@ -183,10 +184,47 @@ class VoiceChatbotGUI:
             self.listen_button.config(text="Start Listening", bg="#4CAF50")
             self.stop_listening()
 
-def main():
-    root = tk.Tk()
-    app = VoiceChatbotGUI(root)
-    root.mainloop()
+# --- Reminder Tool Handlers ---
+def add_medication_reminder(medication, time, frequency='daily'):
+    reminder_manager.add_reminder(medication, time, frequency)
+    return f"Reminder set for {medication} at {time} {frequency}."
+
+def list_medication_reminders():
+    reminders = reminder_manager.list_reminders()
+    if not reminders:
+        return "You have no active medication reminders."
+    return "Here are your medication reminders: " + ", ".join([
+        f"{r['medication']} at {r['time']} {r['frequency']}" for r in reminders
+    ])
+
+def remove_medication_reminder(medication, time=None):
+    reminder_manager.remove_reminder(medication, time)
+    return f"Removed reminder for {medication}."
+
+def update_medication_reminder(medication, new_time=None, new_frequency=None):
+    reminder_manager.update_reminder(medication, new_time, new_frequency)
+    return f"Updated reminder for {medication}."
+
+def mark_medication_as_taken(medication):
+    reminder_manager.mark_as_taken(medication)
+    return f"Marked {medication} as taken for today."
+
+# --- Voice-Only Main Loop ---
+async def main_loop():
+    # Start reminder scheduler in the background
+    asyncio.create_task(reminder_manager.schedule_reminders(speak))
+    print("ECR is ready. Say 'bye' to exit.")
+    while True:
+        command = await listen_for_command()
+        if not command:
+            continue
+        print(f"You: {command}")
+        if 'bye' in command.lower():
+            await speak("Goodbye! Have a great day!")
+            break
+        response = await get_response_from_openai(command)
+        print(f"ECR: {response}")
+        await speak(response)
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main_loop())
