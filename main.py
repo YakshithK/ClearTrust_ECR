@@ -14,6 +14,7 @@ from tkinter import scrolledtext
 import threading
 from datetime import datetime
 from reminders import reminder_manager
+from rag.retrieve import retrieve  # Add this import at the top
 
 client = OpenAI(api_key=openapi_key)
 
@@ -34,7 +35,22 @@ conversation_history = []
 async def get_response_from_openai(prompt):
     global conversation_history
 
-    conversation_history.append({"role": "user", "content": prompt})
+    # --- RAG Integration ---
+    RAG_THRESHOLD = 1.0  # Lower is more similar; tune as needed
+    try:
+        rag_results = retrieve(prompt, top_k=3, threshold=RAG_THRESHOLD)
+    except Exception as e:
+        print(f"RAG retrieval error: {e}")
+        rag_results = []
+    if rag_results:
+        context = "\n".join([p for p, d in rag_results])
+        print("RAG is being used: context retrieved and added to prompt.")
+        augmented_prompt = f"Context from trusted knowledge base:\n{context}\n\nUser: {prompt}"
+    else:
+        augmented_prompt = prompt
+    # --- End RAG Integration ---
+
+    conversation_history.append({"role": "user", "content": augmented_prompt})
 
     if len(conversation_history) > 10:
         conversation_history = conversation_history[-10:]
